@@ -1,0 +1,307 @@
+=========================
+   CRUD OPERATTIONS 
+=========================
+
+1- Organizations:
+
+CREATE:
+
+INSERT INTO organizations(name,industry,country) VALUES
+('Habib Bank Limited','Finance','Pakistan')
+returning org_id;
+
+- ------------------------------------------------------------
+-1 ORGANIZATIONS
+
+ CREATE:
+INSERT INTO organizations (name, industry, country)
+VALUES ('Habib Bank Limited','Finance','Pakistan')
+RETURNING org_id;
+
+ READ:
+SELECT *
+FROM organizations
+WHERE org_id = 1;
+
+ READ 
+;
+SELECT *
+FROM organizations
+ORDER BY name;
+
+ UPDATE 
+UPDATE 
+SET industry = 'Technology'
+WHERE org_id = 1;
+ DELETE:
+DELETE FROM organizations
+WHERE org_id = 1;
+
+
+-- ------------------------------------------------------------
+-2 ANALYSTS
+ CREATE:
+INSERT INTO analysts (org_id, name, email, role, hired_date)
+VALUES (1, 'Ahmedd', 'ahmed@example.com', 'Senior Analyst', '2025-01-10')
+RETURNING analyst_id;
+
+ READ: analysts 
+SELECT a.*
+FROM analysts a
+WHERE a.org_id = 1
+ORDER BY a.name;                                ($$$$$$$$$$%^
+
+ READ single :
+SELECT *
+FROM analysts
+WHERE analyst_id = 5;
+
+ UPDATe:
+UPDATE 
+SET role = 'Lead Analyst'
+WHERE analyst_id = 5;
+
+ DELETE 
+DELETE FROM analysts
+WHERE analyst_id = 5;
+
+
+- ------------------------------------------------------------
+-3 ASSETS
+ CREATE:;
+INSERT INTO assets (org_id, hostname, ip_address, asset_type, os, is_critical)
+VALUES (1, 'web01', '192.168.1.10', 'Server:EUROPE', 'Ubuntu 22.04', TRUE)
+RETURNING asset_id;
+
+ READ assetss
+SELECT *
+FROM assets
+WHERE org_id = 1
+ORDER BY hostname;
+
+
+READ single :
+SELECT *
+FROM assets
+WHERE asset_id = 10;
+
+ UPDATE:
+UPDATE assets
+SET is_critical = TRUE
+WHERE asset_id = 10;
+
+ DELETE assett
+DELETE FROM assets
+WHERE asset_id = 10;
+
+
+- ------------------------------------------------------------
+-4 VULNERABILITIES
+
+CREATE:
+INSERT INTO vulnerabilities (cve_id, description, severity, cvss_score, published_date)
+VALUES ('CVE-2001-1234', 'Remote code execution in XYZ', 'Critical', 9.8, '2021-02-01')
+RETURNING vuln_id;
+
+ READ: vulnerabilities
+SELECT *
+FROM vulnerabilities
+WHERE severity = 'Critical'
+ORDER BY cvss_score DESC NULLS LAST, published_date DESC;
+
+ READ single: vulnerability
+SELECT *
+FROM vulnerabilities
+WHERE vuln_id = 3;
+
+ UPDATE: vulnerability CVSS score
+UPDATE vulnerabilities
+SET cvss_score = 8.5
+WHERE vuln_id = 3;
+
+ DELETE vulnerability::
+DELETE FROM vulnerabilities
+WHERE vuln_id = 3;
+
+
+-- ------------------------------------------------------------
+-5 ASSET_VULNERABILITY (junction)
+
+
+ CREATE link: assign vulnerability instance to an asset
+INSERT INTO asset_vulnerability (asset_id, vuln_id, detected_on, patched, patched_on)
+VALUES (10, 3, CURRENT_DATE, FALSE, NULL);
+
+ READ: vulnerabilities on a specific asset
+SELECT v.*, av.detected_on, av.patched, av.patched_on
+FROM asset_vulnerability av
+JOIN vulnerabilities v ON v.vuln_id = av.vuln_id
+WHERE av.asset_id = 10
+ORDER BY v.severity, v.cvss_score DESC NULLS LAST;
+
+ READ: assets affected by a specific vulnerability
+SELECT a.*, av.detected_on, av.patched, av.patched_on
+FROM asset_vulnerability av
+JOIN assets a ON a.asset_id = av.asset_id
+WHERE av.vuln_id = 3
+ORDER BY a.hostname;
+
+ UPDATE: mark an asset-vulnerability as patched
+UPDATE asset_vulnerability
+SET patched = TRUE,
+    patched_on = CURRENT_DATE
+WHERE asset_id = 10
+  AND vuln_id = 3;
+
+ DELETE: unlink vulnerability from asset
+DELETE FROM asset_vulnerability
+WHERE asset_id = 10
+  AND vuln_id = 3;
+
+------------------------------------------------------------
+ 0.6 INCIDENTS
+ CREATE: incident
+INSERT INTO incidents (org_id, title, type, severity, status, reported_at, resolved_at, rep_by)
+VALUES (
+  1,'Suspicious login from unknown IP','Unauthorized Access','High',Open', NOW(),NULL,'SIEM Alert')
+
+RETURNING inc_id;
+
+- READ: open/in-progress incidents for an organization
+SELECT *
+FROM incidents
+WHERE org_id = 1
+  AND status IN ('Open', 'In Progress')
+ORDER BY reported_at DESC;
+
+- READ single incident
+SELECT *
+FROM incidents
+WHERE inc_id = 42;
+
+ UPDATE: resolve incident
+UPDATE incidents
+SET status = 'Resolved',
+    resolved_at = NOW()
+WHERE inc_id = 42;
+
+ UPDATE: change status (generic)
+UPDATE incidents
+SET status = 'In Progress'
+WHERE inc_id = 42;
+
+- DELETE incident
+DELETE FROM incidents
+WHERE inc_id = 42;
+
+
+-- ------------------------------------------------------------
+-7 INCIDENT_ASSETS (junction)
+
+
+
+
+     CREATE: link asset to incident
+
+INSERT INTO incident_assets (incident_id, asset_id, impact)
+VALUES (42, 10, 'Service outage for 30 minutes');
+
+ READ: assets affected in an incident                   --INNER JOIN
+SELECT a.*, ia.impact
+FROM incident_assets ia
+JOIN assets a ON a.asset_id = ia.asset_id
+WHERE ia.incident_id = 42
+ORDER BY a.hostname;
+
+ READ: incidents involving a particular asset      --INNER JOIN
+SELECT i.*, ia.impact
+FROM incident_assets ia
+JOIN incidents i ON i.inc_id = ia.incident_id
+WHERE ia.asset_id = 10
+ORDER BY i.reported_at DESC;
+
+
+ UPDATE: impact statement
+UPDATE incident_assets
+SET impact = 'Data exfiltration detected'
+WHERE incident_id = 42
+  AND asset_id = 10;
+
+          DELETE: unlink asset from incident
+DELETE FROM incident_assets
+WHERE incident_id = 42
+  AND asset_id = 10;
+
+
+
+
+ ----------- ------------------------------------------------
+ 8 INCIDENT_ANALYSTS (junction)
+
+
+
+
+
+ CREATE: assign analyst to incident
+INSERT INTO incident_analysts (incident_id, analyst_id, assigned_at, role_in_incident)
+VALUES (42, 5, NOW(), 'Lead');
+
+
+ READ: analysts assigned to an incident
+SELECT a.analyst_id, a.name, a.email, ia.role_in_incident, ia.assigned_at
+
+FROM incident_analysts ia
+JOIN analysts a ON a.analyst_id = ia.analyst_id   --INNER JOIN
+WHERE ia.incident_id = 42
+ORDER BY ia.assigned_at;
+
+ READ: incidents assigned to an analyst
+SELECT i.*, ia.role_in_incident, ia.assigned_at
+FROM incident_analysts ia
+JOIN incidents i ON i.inc_id = ia.i
+ncident_id                                                         --INNER JOINS
+WHERE ia.analyst_id = 5
+ORDER BY i.reported_at DESC;
+
+ UPDATE: change role in incident
+UPDATE incident_analysts
+SET role_in_incident = 'Support'
+WHERE incident_id = 42
+
+  AND analyst_id = 5;
+DELETE: unassign analyst from incident
+DELETE FROM incident_analysts
+WHERE incident_id = 42
+  AND analyst_id = 5;
+
+
+-- ------------------------------------------------------------
+ 0.9 REMEDIATION_ACTIONS
+ CREATE: remediation action
+INSERT INTO remediation_actions (incident_id, analyst_id, action_taken, action_date, result)
+VALUES  42,5,'Applied security patch and restarted service',NOW(),'Successful'
+)
+RETURNING action_id;
+                                                      --INNER JOIN
+ READ: remediation actions for an incident
+SELECT ra.action_id,
+       ra.action_date,
+       a.name AS analyst_name,
+       ra.action_taken,
+       ra.result
+FROM remediation_actions ra
+JOIN analysts a ON a.analyst_id = ra.an
+alyst_id
+WHERE ra.incident_id = 42
+
+ORDER BY ra.action_date;
+
+
+UPDATE remediation action result
+UPDATE remediation_actions
+SET result = 'Partial'
+WHERE action_id = 7;
+
+ DELETE remediation action
+DELETE FROM remediation_actions
+WHERE action_id = 7;
