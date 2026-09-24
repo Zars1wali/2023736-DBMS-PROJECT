@@ -1,5 +1,16 @@
 #  Cybersecurity Incident Management System
 
+<div align="center">
+
+[![PostgreSQL](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.java.com/)
+[![Cybersecurity](https://img.shields.io/badge/Cybersecurity-0A85EA?style=for-the-badge&logo=securityscorecard&logoColor=white)](https://owasp.org/)
+[![Jira](https://img.shields.io/badge/jira-%230A0FFF.svg?style=for-the-badge&logo=jira&logoColor=white)](https://www.atlassian.com/software/jira)
+[![Git](https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white)](https://git-scm.com/)
+
+</div>
+
+
 ### Semester Project — DBMS (Relational Databases using PostgreSQL)
 
 ---
